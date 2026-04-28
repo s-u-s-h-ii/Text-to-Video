@@ -1,0 +1,129 @@
+name: Text-to-Video Studio CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ─────────────────────────────────────
+  # Job 1: Lint & Format Check
+  # ─────────────────────────────────────
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linting tools
+        run: pip install flake8 black isort
+
+      - name: Run flake8 (syntax & style)
+        run: flake8 backend/ --max-line-length=120 --exclude=__pycache__
+
+      - name: Check formatting with Black
+        run: black --check --line-length=120 backend/
+
+      - name: Check import ordering
+        run: isort --check-only --profile black backend/
+
+  # ─────────────────────────────────────
+  # Job 2: Unit & Integration Tests
+  # ─────────────────────────────────────
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r backend/requirements-dev.txt
+
+      - name: Run tests
+        env:
+          SECRET_KEY: ci-test-secret-key
+          DEVICE: cpu
+          TORCH_DTYPE: float32
+        run: pytest tests/ -v --tb=short --co -q && pytest tests/ -v --tb=short
+
+  # ─────────────────────────────────────
+  # Job 3: Build Verification
+  # ─────────────────────────────────────
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Verify imports work
+        run: |
+          python -c "from backend.config import *; print('Config OK')"
+          python -c "from backend.models import *; print('Models OK')"
+          python -c "from backend.database import *; print('Database OK')"
+          python -c "from backend.auth import *; print('Auth OK')"
+          python -c "from backend.routes import *; print('Routes OK')"
+
+      - name: Verify frontend files exist
+        run: |
+          test -f frontend/index.html
+          test -f frontend/styles.css
+          test -f frontend/app.js
+          echo "Frontend files OK"
+
+  # ─────────────────────────────────────
+  # Job 4: Docker Build (optional)
+  # ─────────────────────────────────────
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: text-to-video-studio:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
