@@ -5,10 +5,10 @@ Pydantic models for API request/response schemas.
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 
-
 # ──────────────────────────────────────────────
 # Authentication
 # ──────────────────────────────────────────────
+
 
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=30, pattern=r"^[a-zA-Z0-9_]+$")
@@ -38,17 +38,15 @@ class UserInfo(BaseModel):
 # Generation
 # ──────────────────────────────────────────────
 
+
 class GenerationRequest(BaseModel):
-    prompt: str = Field(..., min_length=5, max_length=2000,
-                        description="Text to convert into a video")
-    scene_duration: float = Field(default=3.0, ge=1.0, le=10.0,
-                                  description="Duration per scene in seconds")
-    num_inference_steps: int = Field(default=30, ge=10, le=100,
-                                     description="Number of diffusion steps (higher = better quality, slower)")
-    guidance_scale: float = Field(default=7.5, ge=1.0, le=20.0,
-                                  description="How closely to follow the prompt")
-    resolution: int = Field(default=768, description="Image resolution",
-                            json_schema_extra={"enum": [512, 768, 1024]})
+    prompt: str = Field(..., min_length=5, max_length=2000, description="Text to convert into a video")
+    scene_duration: float = Field(default=3.0, ge=1.0, le=10.0, description="Duration per scene in seconds")
+    num_inference_steps: int = Field(
+        default=30, ge=10, le=100, description="Number of diffusion steps (higher = better quality, slower)"
+    )
+    guidance_scale: float = Field(default=7.5, ge=1.0, le=20.0, description="How closely to follow the prompt")
+    resolution: int = Field(default=768, description="Image resolution", json_schema_extra={"enum": [512, 768, 1024]})
 
 
 class GenerationResponse(BaseModel):

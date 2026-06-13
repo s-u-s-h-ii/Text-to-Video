@@ -10,10 +10,7 @@ import logging
 import torch
 from concurrent.futures import ThreadPoolExecutor
 
-from backend.config import (
-    MODEL_ID, DEVICE, TORCH_DTYPE, TASKS_DIR,
-    VIDEO_FPS, MAX_SENTENCES
-)
+from backend.config import MODEL_ID, DEVICE, TORCH_DTYPE, TASKS_DIR, VIDEO_FPS, MAX_SENTENCES
 from backend import database
 
 logger = logging.getLogger("pipeline")
@@ -27,6 +24,7 @@ class ModelManager:
     Singleton manager for the Stable Diffusion pipeline.
     Lazy-loads the model on first use to avoid slow startup.
     """
+
     _instance = None
     _pipe = None
     _is_loading = False
@@ -92,9 +90,9 @@ class ModelManager:
         finally:
             self._is_loading = False
 
-    def generate_image(self, prompt: str, resolution: int = 768,
-                       num_inference_steps: int = 30,
-                       guidance_scale: float = 7.5):
+    def generate_image(
+        self, prompt: str, resolution: int = 768, num_inference_steps: int = 30, guidance_scale: float = 7.5
+    ):
         """Generate a single image from a text prompt."""
         if self._pipe is None:
             self.load_model()
@@ -125,7 +123,7 @@ def split_text_to_sentences(text: str) -> list[str]:
     Returns non-empty, stripped sentences up to MAX_SENTENCES.
     """
     # Split on period, exclamation, question mark
-    raw = re.split(r'(?<=[.!?])\s+', text.strip())
+    raw = re.split(r"(?<=[.!?])\s+", text.strip())
     sentences = [s.strip() for s in raw if s.strip() and len(s.strip()) > 2]
 
     if not sentences:
@@ -167,9 +165,7 @@ def _generate_video_sync(
         progress = min((current_step / total_steps) * 100, 99.0)
         # Use synchronous database update via asyncio
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(
-            database.update_task_progress(task_id, progress, message)
-        )
+        loop.run_until_complete(database.update_task_progress(task_id, progress, message))
         loop.close()
 
     try:
@@ -245,9 +241,7 @@ def _generate_video_sync(
 
         # Mark complete
         loop = asyncio.new_event_loop()
-        loop.run_until_complete(
-            database.complete_task(task_id, str(output_path), thumbnail_path)
-        )
+        loop.run_until_complete(database.complete_task(task_id, str(output_path), thumbnail_path))
         loop.close()
 
         logger.info(f"[{task_id}] Video generation complete!")
@@ -275,6 +269,10 @@ async def start_generation(
     loop.run_in_executor(
         _executor,
         _generate_video_sync,
-        task_id, prompt, scene_duration,
-        num_inference_steps, guidance_scale, resolution,
+        task_id,
+        prompt,
+        scene_duration,
+        num_inference_steps,
+        guidance_scale,
+        resolution,
     )

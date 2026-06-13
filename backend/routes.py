@@ -12,10 +12,16 @@ from jose import JWTError, jwt
 from backend.auth import get_current_user, register_user, authenticate_user, create_access_token
 from backend.config import MODEL_ID, TASKS_DIR, SECRET_KEY, ALGORITHM
 from backend.models import (
-    RegisterRequest, LoginRequest, AuthResponse, UserInfo,
-    GenerationRequest, GenerationResponse,
-    TaskStatusResponse, TaskListItem,
-    HealthResponse, MessageResponse,
+    RegisterRequest,
+    LoginRequest,
+    AuthResponse,
+    UserInfo,
+    GenerationRequest,
+    GenerationResponse,
+    TaskStatusResponse,
+    TaskListItem,
+    HealthResponse,
+    MessageResponse,
 )
 from backend import database
 from backend.pipeline import ModelManager, start_generation
@@ -43,6 +49,7 @@ async def get_user_from_token_param(token: str = Query(...)) -> dict:
 # Health
 # ──────────────────────────────────────────────
 
+
 @router.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
     """Server health check with GPU and model status."""
@@ -63,6 +70,7 @@ async def health_check():
 # Authentication
 # ──────────────────────────────────────────────
 
+
 @router.post("/auth/register", response_model=AuthResponse, tags=["Auth"])
 async def register(req: RegisterRequest):
     """Register a new user account."""
@@ -75,7 +83,7 @@ async def register(req: RegisterRequest):
             username=user["username"],
             email=user["email"],
             created_at=user["created_at"],
-        )
+        ),
     )
 
 
@@ -91,7 +99,7 @@ async def login(req: LoginRequest):
             username=user["username"],
             email=user["email"],
             created_at=user["created_at"],
-        )
+        ),
     )
 
 
@@ -110,16 +118,13 @@ async def get_me(user: dict = Depends(get_current_user)):
 # Video Generation
 # ──────────────────────────────────────────────
 
-@router.post("/generate", response_model=GenerationResponse,
-             status_code=status.HTTP_202_ACCEPTED, tags=["Generation"])
+
+@router.post("/generate", response_model=GenerationResponse, status_code=status.HTTP_202_ACCEPTED, tags=["Generation"])
 async def submit_generation(req: GenerationRequest, user: dict = Depends(get_current_user)):
     """Submit a text prompt for video generation."""
     # Validate resolution
     if req.resolution not in [512, 768, 1024]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Resolution must be 512, 768, or 1024"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Resolution must be 512, 768, or 1024")
 
     # Create task in database
     task = await database.create_task(
@@ -153,6 +158,7 @@ async def submit_generation(req: GenerationRequest, user: dict = Depends(get_cur
 # Task Management
 # ──────────────────────────────────────────────
 
+
 @router.get("/tasks", response_model=list[TaskListItem], tags=["Tasks"])
 async def list_tasks(user: dict = Depends(get_current_user)):
     """List all tasks for the current user."""
@@ -162,16 +168,18 @@ async def list_tasks(user: dict = Depends(get_current_user)):
         thumbnail_url = None
         if t.get("thumbnail_path") and Path(t["thumbnail_path"]).exists():
             thumbnail_url = f"/api/tasks/{t['id']}/thumbnail"
-        result.append(TaskListItem(
-            id=t["id"],
-            prompt=t["prompt"],
-            status=t["status"],
-            progress=t["progress"],
-            resolution=t["resolution"],
-            created_at=t["created_at"],
-            completed_at=t.get("completed_at"),
-            thumbnail_url=thumbnail_url,
-        ))
+        result.append(
+            TaskListItem(
+                id=t["id"],
+                prompt=t["prompt"],
+                status=t["status"],
+                progress=t["progress"],
+                resolution=t["resolution"],
+                created_at=t["created_at"],
+                completed_at=t.get("completed_at"),
+                thumbnail_url=thumbnail_url,
+            )
+        )
     return result
 
 

@@ -37,6 +37,7 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Shutting down...")
     from backend.pipeline import ModelManager
+
     ModelManager.get_instance().unload()
     logger.info("Model unloaded, goodbye!")
 

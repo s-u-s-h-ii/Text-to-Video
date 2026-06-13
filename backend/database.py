@@ -70,6 +70,7 @@ async def init_db():
 # User CRUD
 # ──────────────────────────────────────────────
 
+
 async def create_user(username: str, email: str, hashed_password: str) -> dict:
     """Create a new user and return user dict."""
     user_id = str(uuid.uuid4())
@@ -77,7 +78,7 @@ async def create_user(username: str, email: str, hashed_password: str) -> dict:
         db.row_factory = aiosqlite.Row
         await db.execute(
             "INSERT INTO users (id, username, email, hashed_password) VALUES (?, ?, ?, ?)",
-            (user_id, username, email, hashed_password)
+            (user_id, username, email, hashed_password),
         )
         await db.commit()
         cursor = await db.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -116,13 +117,9 @@ async def get_user_by_id(user_id: str) -> dict | None:
 # Task CRUD
 # ──────────────────────────────────────────────
 
+
 async def create_task(
-    user_id: str,
-    prompt: str,
-    scene_duration: float,
-    num_inference_steps: int,
-    guidance_scale: float,
-    resolution: int
+    user_id: str, prompt: str, scene_duration: float, num_inference_steps: int, guidance_scale: float, resolution: int
 ) -> dict:
     """Create a new generation task."""
     task_id = str(uuid.uuid4())
@@ -132,8 +129,7 @@ async def create_task(
             """INSERT INTO tasks (id, user_id, prompt, scene_duration,
                num_inference_steps, guidance_scale, resolution)
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (task_id, user_id, prompt, scene_duration,
-             num_inference_steps, guidance_scale, resolution)
+            (task_id, user_id, prompt, scene_duration, num_inference_steps, guidance_scale, resolution),
         )
         await db.commit()
         cursor = await db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
@@ -155,25 +151,19 @@ async def get_user_tasks(user_id: str, limit: int = 50) -> list[dict]:
     async with aiosqlite.connect(str(DB_PATH)) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
-            "SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
-            (user_id, limit)
+            "SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC LIMIT ?", (user_id, limit)
         )
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
 
 
-async def update_task_progress(
-    task_id: str,
-    progress: float,
-    message: str = "",
-    status: str = "processing"
-):
+async def update_task_progress(task_id: str, progress: float, message: str = "", status: str = "processing"):
     """Update task progress."""
     async with aiosqlite.connect(str(DB_PATH)) as db:
         await db.execute(
             """UPDATE tasks SET progress = ?, progress_message = ?, status = ?
                WHERE id = ?""",
-            (progress, message, status, task_id)
+            (progress, message, status, task_id),
         )
         await db.commit()
 
@@ -186,7 +176,7 @@ async def complete_task(task_id: str, video_path: str, thumbnail_path: str = Non
                progress_message = 'Video ready!', video_path = ?,
                thumbnail_path = ?, completed_at = ?
                WHERE id = ?""",
-            (video_path, thumbnail_path, datetime.utcnow().isoformat(), task_id)
+            (video_path, thumbnail_path, datetime.utcnow().isoformat(), task_id),
         )
         await db.commit()
 
@@ -198,7 +188,7 @@ async def fail_task(task_id: str, error: str):
             """UPDATE tasks SET status = 'failed', progress_message = ?,
                error = ?, completed_at = ?
                WHERE id = ?""",
-            (f"Failed: {error}", error, datetime.utcnow().isoformat(), task_id)
+            (f"Failed: {error}", error, datetime.utcnow().isoformat(), task_id),
         )
         await db.commit()
 
