@@ -4,14 +4,22 @@ Refactored from the original new_text_to_video.py script.
 Handles: text splitting -> image generation -> TTS -> video composition.
 """
 
-import re
 import asyncio
 import logging
-import torch
+import re
 from concurrent.futures import ThreadPoolExecutor
 
-from backend.config import MODEL_ID, DEVICE, TORCH_DTYPE, TASKS_DIR, VIDEO_FPS, MAX_SENTENCES
+import torch
+
 from backend import database
+from backend.config import (
+    DEVICE,
+    MAX_SENTENCES,
+    MODEL_ID,
+    TASKS_DIR,
+    TORCH_DTYPE,
+    VIDEO_FPS,
+)
 
 logger = logging.getLogger("pipeline")
 

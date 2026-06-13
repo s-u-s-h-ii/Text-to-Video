@@ -4,13 +4,14 @@ Handles user registration, login, password hashing, and token management.
 """
 
 from datetime import datetime, timedelta, timezone
-import bcrypt as _bcrypt
-from jose import JWTError, jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from backend.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+import bcrypt as _bcrypt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+
 from backend import database
+from backend.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
 # Bearer token scheme
 security = HTTPBearer()

@@ -3,9 +3,11 @@ SQLite database manager for users and video generation tasks.
 Uses aiosqlite for async operations.
 """
 
-import aiosqlite
 import uuid
 from datetime import datetime
+
+import aiosqlite
+
 from backend.config import DB_PATH
 
 

@@ -3,27 +3,33 @@ API route definitions for the Text-to-Video Studio.
 """
 
 import shutil
-import torch
 from pathlib import Path
+
+import torch
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
 from jose import JWTError, jwt
 
-from backend.auth import get_current_user, register_user, authenticate_user, create_access_token
-from backend.config import MODEL_ID, TASKS_DIR, SECRET_KEY, ALGORITHM
+from backend import database
+from backend.auth import (
+    authenticate_user,
+    create_access_token,
+    get_current_user,
+    register_user,
+)
+from backend.config import ALGORITHM, MODEL_ID, SECRET_KEY, TASKS_DIR
 from backend.models import (
-    RegisterRequest,
-    LoginRequest,
     AuthResponse,
-    UserInfo,
     GenerationRequest,
     GenerationResponse,
-    TaskStatusResponse,
-    TaskListItem,
     HealthResponse,
+    LoginRequest,
     MessageResponse,
+    RegisterRequest,
+    TaskListItem,
+    TaskStatusResponse,
+    UserInfo,
 )
-from backend import database
 from backend.pipeline import ModelManager, start_generation
 
 router = APIRouter(prefix="/api")
