@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from backend.config import FRONTEND_DIR, DATA_DIR, DEBUG
+from backend.config import FRONTEND_DIR, DEBUG
 from backend.database import init_db
 from backend.routes import router
 

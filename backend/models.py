@@ -46,7 +46,7 @@ class GenerationRequest(BaseModel):
     num_inference_steps: int = Field(default=30, ge=10, le=100,
                                      description="Number of diffusion steps (higher = better quality, slower)")
     guidance_scale: float = Field(default=7.5, ge=1.0, le=20.0,
-                                   description="How closely to follow the prompt")
+                                  description="How closely to follow the prompt")
     resolution: int = Field(default=768, description="Image resolution",
                             json_schema_extra={"enum": [512, 768, 1024]})
 

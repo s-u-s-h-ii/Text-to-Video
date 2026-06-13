@@ -4,12 +4,10 @@ Refactored from the original new_text_to_video.py script.
 Handles: text splitting -> image generation -> TTS -> video composition.
 """
 
-import os
 import re
 import asyncio
 import logging
 import torch
-from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 from backend.config import (
@@ -150,7 +148,6 @@ def _generate_video_sync(
     """
     import moviepy as mpe
     from gtts import gTTS
-    from PIL import Image
 
     task_dir = TASKS_DIR / task_id
     image_dir = task_dir / "images"
